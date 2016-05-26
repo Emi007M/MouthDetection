@@ -30,22 +30,12 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <ImageView
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/imageView"
-        android:src="@drawable/preview"
-        android:layout_below="@+id/preview_check"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <com.emilia.mouthdetection.DetectMouth
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/preview"
-        android:layout_below="@+id/capturing"
-        android:layout_marginTop="33dp"
-        android:layout_alignParentBottom="true"
+        android:text="Expression: -"
+        android:id="@+id/expressions"
+        android:layout_below="@+id/faces"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -60,5 +50,30 @@
         android:layout_marginLeft="52dp"
         android:layout_marginStart="52dp"
         android:checked="false" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="70dp">
+
+        <com.emilia.mouthdetection.DetectMouth
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/preview"
+            android:layout_below="@+id/capturing"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:id="@+id/imageView"
+            android:src="@drawable/preview"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_gravity="right|bottom" />
+    </FrameLayout>
 
 </RelativeLayout>

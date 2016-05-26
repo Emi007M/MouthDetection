@@ -5,7 +5,7 @@ import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceView;
+import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -14,14 +14,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.emilia.mouthdetection.DetectMouth;
-import com.emilia.mouthdetection.FaceCounterListener;
+import com.emilia.mouthdetection.MouthListener;
 import com.emilia.mouthdetection.R;
 
-public class MainActivity extends AppCompatActivity implements FaceCounterListener.Listener{
+public class MainActivity extends AppCompatActivity implements MouthListener.Listener{
 
     Activity context;
     ImageView mouthBox;
-    public TextView faces_txt;
+    TextView faces_txt;
+    TextView expressions_txt;
     CheckBox preview_check;
     Switch capture_switch;
     DetectMouth mPreview;
@@ -29,21 +30,22 @@ public class MainActivity extends AppCompatActivity implements FaceCounterListen
     int camId=-1;
     Camera mCamera;
 
-    FaceCounterListener fcListener;
+    MouthListener fcListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         context=this;
 
 
         mouthBox = (ImageView) findViewById(R.id.imageView);
         faces_txt = (TextView) findViewById(R.id.faces);
+        expressions_txt = (TextView) findViewById(R.id.expressions);
         preview_check = (CheckBox) findViewById(R.id.preview_check);
         capture_switch = (Switch) findViewById(R.id.capturing);
 
+        mouthBox.setVisibility(View.INVISIBLE);
 
 
 
@@ -51,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements FaceCounterListen
         capture_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked) {
-
                     prepareDetectMouth();
 
                     mPreview.startCapture();
@@ -85,15 +86,18 @@ public class MainActivity extends AppCompatActivity implements FaceCounterListen
 
 
 
-        //register listener for face amount;
-        fcListener = new FaceCounterListener();
+        //register listener for DetectMouth;
+        fcListener = new MouthListener();
         fcListener.registerListener(this);
-
 
 
     }
 
-    /* called just like onCreate at some point in time */
+    /**
+     * Listener for DetectMouth, updates faces_txt
+     * @param isFace is there at least 1 face found
+     * @param amount of recognized faces
+     */
     @Override
     public void onFaceAmountChange(boolean isFace, int amount) {
         if (isFace) {
@@ -104,16 +108,29 @@ public class MainActivity extends AppCompatActivity implements FaceCounterListen
         }
     }
 
+    /**
+     * Listener for DetectMouth, updates expressions_txt
+     * @param recognized
+     * @param expression
+     */
+    @Override
+    public void onExpressionChange(boolean recognized, int expression) {
+        if(recognized){
+            expressions_txt.setText("Expression: "+expression);
+        }
+        else{
+            expressions_txt.setText("Expression: -");
+        }
+    }
+
 
     @Override
     protected void onResume() {
         super.onResume();
 
 
-
         if(capture_switch.isChecked()) {
             findFrontCamera();
-
             mPreview.setMouthBox(mCamera, mouthBox, camId);
         }
     }
@@ -129,6 +146,9 @@ public class MainActivity extends AppCompatActivity implements FaceCounterListen
         }
     }
 
+    /**
+     * finds and opens front camera
+     */
     protected void findFrontCamera(){
         int numCams = Camera.getNumberOfCameras();
 
@@ -158,6 +178,9 @@ public class MainActivity extends AppCompatActivity implements FaceCounterListen
     }
 
 
+    /**
+     * initializes DetectMouth
+     */
     private void prepareDetectMouth(){
         if(mCamera==null)
             findFrontCamera();

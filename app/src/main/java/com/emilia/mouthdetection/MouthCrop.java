@@ -5,9 +5,15 @@ import android.graphics.RectF;
 
 
 public class MouthCrop {
-	
 
-	
+
+	/**
+	 * Handles mouth cropping from an image
+	 * @param bitmap with a face
+	 * @param recycle true for bitmap removing
+	 * @param rect for a recognized face
+     * @return cropped Bitmap mouth
+     */
 	public static Bitmap getMouthFromBitmap(Bitmap bitmap, boolean recycle, RectF rect){
 
 		//crop to bottom middle 1/4 square

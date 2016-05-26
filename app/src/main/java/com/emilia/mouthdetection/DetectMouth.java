@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
+import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -18,12 +20,9 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Console;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,29 +33,26 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
     Activity mActivity;
     SurfaceView mSurfaceView;
     SurfaceHolder mHolder;
+
     Camera.Size mPreviewSize;
     List<Camera.Size> mSupportedPreviewSizes;
+    int sampleSize;
     Camera mCamera;
-    private int camId;
+    int camId;
 
     Matrix matrix = new Matrix();
-    private ImageView mouthBox;
+    ImageView mouthBox;
 
-
-
-    //private CameraPreview camPreview;
-    private int sampleSize;
-
-
-    int currentExpression;
     boolean isCapturing;
+    boolean isPreview = false;
+
     int facesAmount;
     private boolean newFace = false;
     private RectF currentFace;
+    int currentExpression;
 
-    boolean isPreview = false;
 
-    FaceCounterListener fcListener;
+    MouthListener fcListener;
 
 
 
@@ -84,11 +80,15 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
         mHolder = mSurfaceView.getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        mSurfaceView.setVisibility(View.INVISIBLE);
     }
 
 
-
-
+    /**
+     * handles everything :D
+     * @param holder
+     */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         // The Surface has been created, acquire the camera and tell it where
@@ -106,10 +106,13 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
                 mCamera.setPreviewCallback(new Camera.PreviewCallback() {
 
-                    //on single frame made try to capture mouth
+                    //on single frame try to capture mouth
                     public synchronized void onPreviewFrame(byte[] data, Camera camera) {
 
-                        if(!newFace) return;
+                        if(!newFace) {
+                            mouthBox.setImageResource(R.drawable.blind);
+                            return;
+                        }
 
                         // Convert to JPG
                         Camera.Size previewSize = camera.getParameters().getPreviewSize();
@@ -156,6 +159,7 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
             Log.e("DetectMouth", "IOException caused by setPreviewDisplay()", exception);
         }
     }
+
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
@@ -280,8 +284,44 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
     }
 
 
+
+
+
     ///----------
 
+
+    /**
+     * add pointer to mouthBox
+     * @param c
+     * @param v
+     * @param id
+     */
+    public void setMouthBox(Camera c, ImageView v, int id){
+        mCamera = c;
+        Camera.Size s = mCamera.getParameters().getPictureSize();
+        mouthBox = v;
+        camId = id;
+        sampleSize = s.width/256; //recovering a subsampled picture with width of 256px
+        setCamera(c);
+
+        //parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+        requestLayout();
+
+        //mCamera.setParameters(parameters);
+        mCamera.startPreview();
+        mouthBox.setVisibility(INVISIBLE);
+    }
+
+
+
+    /**
+     * translating image from camera to display
+     * @param matrix
+     * @param displayOrientation
+     * @param viewWidth
+     * @param viewHeight
+     * @param mirror
+     */
     public static void prepareMatrix(Matrix matrix, int displayOrientation,
                                      int viewWidth, int viewHeight, boolean mirror) {
 
@@ -297,6 +337,10 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
     }
 
 
+    /**
+     * Set camera parameters
+     * @param camera
+     */
     public void setCamera(Camera camera) {
         mCamera = camera;
         if (mCamera != null) {
@@ -304,7 +348,7 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
             requestLayout();
 
             Camera.Parameters params = mCamera.getParameters();
-            params.set("jpeg-quality", 50);
+            params.set("jpeg-quality", 70);
             params.setPictureFormat(PixelFormat.JPEG);
 
             List<Camera.Size> sizes = params.getSupportedPictureSizes();
@@ -350,12 +394,133 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
     }
 
+
+
+
+    //--EXPRESSIONS (NN)
+
+    /**
+     * Send image to NN and get the expression from it
+     * @param mouth image of mouth
+     */
+    private void checkExpression(Bitmap mouth){
+        setCurrentExpression(NeuralNetwork.getExpressionFromBitmap(mouth));
+    }
+
+    /**
+     *
+     * @return last recognized expression
+     */
+    public int getCurrentExpression() {
+        return currentExpression;
+    }
+
+    /**
+     * set label for expression
+     * @param currentExpression
+     */
+    private void setCurrentExpression(int currentExpression) {
+        this.currentExpression = currentExpression;
+        Log.d("EXPRESSION", Integer.toString(currentExpression));
+
+        boolean isExpression = currentExpression!=-1;
+        fcListener.expressionChanged(isExpression,currentExpression);
+    }
+
+
+
+
+    //---FACES
+
+    /**
+     *
+     * @return how many faces are now on frame
+     */
+    public int getFacesAmount(){
+        return facesAmount;
+    }
+
+    /**
+     *
+     * @param facesAmount set amount of faces
+     */
+    private void setFacesAmount(int facesAmount) {
+        this.facesAmount = facesAmount;
+
+        fcListener.facesChanged(isFace(), facesAmount);
+    }
+
+    /**
+     *
+     * @return if there is any face
+     */
+    public boolean isFace(){
+        return (facesAmount>0);
+    }
+
+
+
+
+
+   //---TRIGGERS
+
+    /**
+     * set Listener
+     * @param faceCounterListener
+     */
+    public void setFaceCounterListener(MouthListener faceCounterListener) {
+        fcListener = faceCounterListener;
+    }
+
+
+
+    /**
+     * open preview from camera
+     */
+    public void startPreview(){
+        isPreview = true;
+        surfaceCreated(mHolder);
+
+        mSurfaceView.setVisibility(View.VISIBLE);
+        if(isCapturing) mouthBox.setVisibility(VISIBLE);
+    }
+
+    /**
+     * close preview from camera
+     */
+    public void stopPreview(){
+        isPreview = false;
+        mSurfaceView.setVisibility(View.INVISIBLE);
+        mouthBox.setVisibility(INVISIBLE);
+
+        if(isCapturing) {
+            //surfaceDestroyed(mHolder);
+            //setMouthBox(mCamera, mouthBox, camId);
+            //surfaceCreated(mHolder);
+//            stopCapture();
+//            startCapture();
+
+        }
+        else
+            surfaceDestroyed(mHolder);
+
+    }
+
+
+
+    /**
+     * start detecting faces
+     */
     public void startCapture() {
         Log.d("Capture", "Start");
         isCapturing = true;
         surfaceCreated(mHolder);
+        if(isPreview) mouthBox.setVisibility(VISIBLE);
     }
 
+    /**
+     * stop detecting faces
+     */
     public void stopCapture() {
         Log.d("Capture", "Stop");
         isCapturing = false;
@@ -373,93 +538,13 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
     }
 
+    /**
+     *
+     * @return if is now detecting faces
+     */
     public boolean isCapturing(){
         return isCapturing;
     }
 
-
-    public int getCurrentExpression() {
-        return currentExpression;
-    }
-
-    private void setCurrentExpression(int currentExpression) {
-        this.currentExpression = currentExpression;
-        Log.d("EXPRESSION", Integer.toString(currentExpression));
-    }
-
-
-    public int getFacesAmount(){
-        return facesAmount;
-    }
-
-    private void setFacesAmount(int facesAmount) {
-        this.facesAmount = facesAmount;
-
-        fcListener.alarm(isFace(), facesAmount);
-    }
-
-    public void updateFacesTxt(int x){
-        Log.d("Face", "DETECTEED "+x);
-
-    }
-
-    public boolean isFace(){
-        return (facesAmount>0);
-    }
-
-
-    public void setFaceCounterListener(FaceCounterListener faceCounterListener) {
-        fcListener = faceCounterListener;
-    }
-
-
-    private void checkExpression(Bitmap mouth){
-        setCurrentExpression(NeuralNetwork.getExpressionFromBitmap(mouth));
-    }
-
-
-    public void setMouthBox(Camera c, ImageView v, int id){
-        mCamera = c;
-        Camera.Size s = mCamera.getParameters().getPictureSize();
-        mouthBox = v;
-        camId = id;
-        sampleSize = s.width/256; //recovering a subsampled picture with width of 256px
-        setCamera(c);
-
-        //parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-        requestLayout();
-
-        //mCamera.setParameters(parameters);
-        mCamera.startPreview();
-
-
-    }
-
-    public void startPreview(){
-        isPreview = true;
-        surfaceCreated(mHolder);
-
-        mSurfaceView.setVisibility(View.VISIBLE);
-
-    }
-
-    public void stopPreview(){
-        isPreview = false;
-        mSurfaceView.setVisibility(View.INVISIBLE);
-
-        if(isCapturing) {
-            //surfaceDestroyed(mHolder);
-            //setMouthBox(mCamera, mouthBox, camId);
-            //surfaceCreated(mHolder);
-//            stopCapture();
-//            startCapture();
-
-        }
-        else
-            surfaceDestroyed(mHolder);
-
-
-
-    }
 
 }
