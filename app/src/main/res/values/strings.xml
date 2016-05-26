@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MouthDetection</string>
+    <string name="camera_not_found">Front camera not found</string>
+    <string name="no_faces">No face found</string>
+</resources>
