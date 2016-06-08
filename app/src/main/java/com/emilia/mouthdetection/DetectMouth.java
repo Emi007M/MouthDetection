@@ -13,6 +13,7 @@ import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
+import android.support.v7.app.ActionBar;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -20,6 +21,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -141,8 +143,8 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
                         //set mouth preview
                         if(isPreview && image!=null) mouthBox.setImageBitmap(mouthImg);
 
-
-                        checkExpression(mouthImg);
+                        if(mouthImg!=null)
+                            checkExpression(mouthImg);
 
 
                         camera.addCallbackBuffer(data);
@@ -223,9 +225,23 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
         // We purposely disregard child measurements because act as a
         // wrapper to a SurfaceView that centers the camera preview instead
         // of stretching it.
-        final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
-        final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
+//        final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
+//        final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
+     //   RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) findViewById(R.id.preview_container).getLayoutParams();
+        final int w = 800;
+        final int h = 800;
+
+        setMeasuredDimension(w,h);
+        if(mCamera==null) return;
+
+        float ratio = (float)mCamera.getParameters().getPreviewSize().width/(float)mCamera.getParameters().getPreviewSize().height;
+        int max_w = getResources().getDisplayMetrics().widthPixels;
+        System.out.println("MAX"+max_w+" "+ratio);
+
+        final int width = (int)(max_w * 0.9);
+        final int height = (int)(max_w * 0.9 / ratio);
         setMeasuredDimension(width, height);
+
 
         if (mSupportedPreviewSizes != null) {
             mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
@@ -237,14 +253,25 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
         if (changed && getChildCount() > 0) {
             final View child = getChildAt(0);
 
+            //actual preview dimensions
             final int width = r - l;
             final int height = b - t;
+
+            System.out.println("MAXX "+r+" "+l+" "+b+" "+t);
 
             int previewWidth = width;
             int previewHeight = height;
             if (mPreviewSize != null) {
-                previewWidth = mPreviewSize.width;
-                previewHeight = mPreviewSize.height;
+                float ratio = (float)width/(float)height;
+                int max_w = getResources().getDisplayMetrics().widthPixels;
+                System.out.println("MAX"+max_w+" "+ratio);
+//                size2.width  = (int)(max_w * 0.7);
+//                size2.height = (int)(max_w * 0.7 / ratio);
+
+               previewWidth = mPreviewSize.width;
+               previewHeight = mPreviewSize.height;
+                //previewWidth = (int)(max_w);
+                //previewHeight = (int)(max_w/ ratio);
             }
 
             // Center the child SurfaceView within the parent.
@@ -259,6 +286,8 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
             }
         }
     }
+
+
 
 
 
@@ -301,7 +330,7 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
         Camera.Size s = mCamera.getParameters().getPictureSize();
         mouthBox = v;
         camId = id;
-        sampleSize = s.width/256; //recovering a subsampled picture with width of 256px
+        //sampleSize = s.width/256; //recovering a subsampled picture with width of 256px
         setCamera(c);
 
         //parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
@@ -357,9 +386,22 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
             //camera.setDisplayOrientation(90);
 
             List<Camera.Size> sizes2 = params.getSupportedPreviewSizes();
-            Camera.Size size2 = sizes2.get(0);
+            Camera.Size size2;
+//            if(sizes2.size()>1)
+//                size2 = sizes2.get(sizes2.size()-2);
+//            else
+                size2 = sizes2.get(0);
+
+
+            //params.setPreviewSize(size2.width, size2.height);
+//            double ratio = size2.width/size2.height;
+//            int max_w = getResources().getDisplayMetrics().widthPixels;
+//            System.out.println("MAX"+max_w);
+//            size2.width  = (int)(max_w * 0.7);
+//            size2.height = (int)(max_w * 0.7 / ratio);
 
             params.setPreviewSize(size2.width, size2.height);
+
             //camera.setPreviewDisplay(mHolder);
 
             //set color efects to none

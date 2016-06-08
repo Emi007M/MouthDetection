@@ -23,7 +23,7 @@ public class MainActivity extends Activity implements MouthListener.Listener{
     TextView faces_txt;
     TextView expressions_txt;
     CheckBox preview_check;
-    Switch capture_switch;
+    CheckBox capture_switch;
     DetectMouth mPreview;
 
     int camId=-1;
@@ -42,7 +42,7 @@ public class MainActivity extends Activity implements MouthListener.Listener{
         faces_txt = (TextView) findViewById(R.id.faces);
         expressions_txt = (TextView) findViewById(R.id.expressions);
         preview_check = (CheckBox) findViewById(R.id.preview_check);
-        capture_switch = (Switch) findViewById(R.id.capturing);
+        capture_switch = (CheckBox) findViewById(R.id.capturing);
 
         mouthBox.setVisibility(View.INVISIBLE);
 
