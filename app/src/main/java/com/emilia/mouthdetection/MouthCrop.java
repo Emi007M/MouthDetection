@@ -22,12 +22,20 @@ public class MouthCrop {
 		int height = (int)(rect.height()*0.5);
 		int width = height;
 
-		Bitmap croppedMouth = Bitmap.createBitmap(bitmap, x, y, width, height);
+		Bitmap croppedMouth;
+		if(x+width<=bitmap.getWidth() && y+height<=bitmap.getHeight()){
+			croppedMouth = Bitmap.createBitmap(bitmap, x, y, width, height);
+			if(recycle){
+				recycleBitmap(bitmap);
+			}
 
-		if(recycle){
-        	recycleBitmap(bitmap);
-        }
-        
+		}
+
+		else
+			return null;
+
+
+
 		return croppedMouth;
 
 	}

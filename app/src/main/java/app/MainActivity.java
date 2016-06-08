@@ -2,7 +2,7 @@ package app;
 
 import android.app.Activity;
 import android.hardware.Camera;
-import android.support.v7.app.AppCompatActivity;
+//import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,14 +17,14 @@ import com.emilia.mouthdetection.DetectMouth;
 import com.emilia.mouthdetection.MouthListener;
 import com.emilia.mouthdetection.R;
 
-public class MainActivity extends AppCompatActivity implements MouthListener.Listener{
+public class MainActivity extends Activity implements MouthListener.Listener{
 
     Activity context;
     ImageView mouthBox;
     TextView faces_txt;
     TextView expressions_txt;
     CheckBox preview_check;
-    Switch capture_switch;
+    CheckBox capture_switch;
     DetectMouth mPreview;
 
     int camId=-1;
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements MouthListener.Lis
         faces_txt = (TextView) findViewById(R.id.faces);
         expressions_txt = (TextView) findViewById(R.id.expressions);
         preview_check = (CheckBox) findViewById(R.id.preview_check);
-        capture_switch = (Switch) findViewById(R.id.capturing);
+        capture_switch = (CheckBox) findViewById(R.id.capturing);
 
         mouthBox.setVisibility(View.INVISIBLE);
 
