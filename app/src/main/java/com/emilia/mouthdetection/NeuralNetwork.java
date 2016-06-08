@@ -25,7 +25,19 @@ public class NeuralNetwork {
         Random rand = new Random();
         currentExpression = rand.nextInt(labels);
 
-        return currentExpression;
+
+        short [] test = new short[1];
+        float [] out = new float[1];
+        test[0] = 1;
+        out = classify(test);
+
+        return (int)out[0];
     }
 
+    // new code
+    static {
+        System.loadLibrary("neural-network");
+    }
+    public static native float [] classify(short [] bitmap);
+    // new code done
 }

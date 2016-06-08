@@ -2,7 +2,6 @@ package app;
 
 import android.app.Activity;
 import android.hardware.Camera;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,7 +16,7 @@ import com.emilia.mouthdetection.DetectMouth;
 import com.emilia.mouthdetection.MouthListener;
 import com.emilia.mouthdetection.R;
 
-public class MainActivity extends AppCompatActivity implements MouthListener.Listener{
+public class MainActivity extends Activity implements MouthListener.Listener{
 
     Activity context;
     ImageView mouthBox;
