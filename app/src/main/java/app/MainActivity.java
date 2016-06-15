@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,7 +15,14 @@ import com.emilia.mouthdetection.DetectMouth;
 import com.emilia.mouthdetection.MouthListener;
 import com.emilia.mouthdetection.R;
 
+/**
+ * Created by  Emilia
+ */
 public class MainActivity extends Activity implements MouthListener.Listener{
+    /**
+     * Simple implementation of Camera Plugin
+     * which enables to join the project with the C++ implementation of the neural network
+     */
 
     Activity context;
     ImageView mouthBox;

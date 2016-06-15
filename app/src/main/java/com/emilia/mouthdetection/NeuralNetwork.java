@@ -2,8 +2,6 @@ package com.emilia.mouthdetection;
 
 import android.graphics.Bitmap;
 
-import java.util.Random;
-
 /**
  * Created by Emilia on 25.05.2016.
  */
@@ -14,16 +12,12 @@ public class NeuralNetwork {
 
 
     /**
-     *
+     * Bridge to C language Neural Network
      * @param mouth cropped image of mouth
      * @return value of the label [0,labels], or -1 if not recognized
      */
     public static int getExpressionFromBitmap(Bitmap mouth){
 
-        //TODO: implement neural network
-
-        Random rand = new Random();
-        currentExpression = rand.nextInt(labels);
 
 
         short [] test = new short[1];
@@ -31,13 +25,15 @@ public class NeuralNetwork {
         test[0] = 1;
         out = classify(test);
 
-        return (int)out[0];
+        currentExpression = (int)out[0];
+
+        return currentExpression;
     }
 
-    // new code
+    //adding bridge to C NN
     static {
         System.loadLibrary("neural-network");
     }
     public static native float [] classify(short [] bitmap);
-    // new code done
+
 }

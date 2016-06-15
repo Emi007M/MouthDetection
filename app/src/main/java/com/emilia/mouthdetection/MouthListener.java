@@ -11,8 +11,8 @@ public class MouthListener {
      * can be used by implementing MouthListener.Listener in Activity
      */
     public interface Listener {
-        public void onFaceAmountChange(boolean state, int amount);
-        public void onExpressionChange(boolean recognized, int expression);
+        void onFaceAmountChange(boolean state, int amount);
+        void onExpressionChange(boolean recognized, int expression);
     }
 
     private Listener mListener = null;

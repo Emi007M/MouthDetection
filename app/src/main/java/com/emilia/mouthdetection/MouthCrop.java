@@ -3,7 +3,9 @@ package com.emilia.mouthdetection;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 
-
+/**
+ * Created by  Emilia
+ */
 public class MouthCrop {
 
 

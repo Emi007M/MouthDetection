@@ -1,19 +1,15 @@
 package com.emilia.mouthdetection;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
-import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
-import android.support.v7.app.ActionBar;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -21,7 +17,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,13 +27,11 @@ import java.util.List;
  */
 public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Camera.FaceDetectionListener {
 
-    Activity mActivity;
     SurfaceView mSurfaceView;
     SurfaceHolder mHolder;
 
     Camera.Size mPreviewSize;
     List<Camera.Size> mSupportedPreviewSizes;
-    int sampleSize;
     Camera mCamera;
     int camId;
 
@@ -55,7 +48,6 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
 
     MouthListener fcListener;
-
 
 
 
@@ -88,7 +80,7 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
 
     /**
-     * handles everything :D
+     * handles everything
      * @param holder
      */
     @Override
@@ -165,15 +157,6 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        // Now that the size is known, set up the camera parameters and begin
-        // the preview.
-//        if(mCamera==null) return;
-//        Camera.Parameters parameters = mCamera.getParameters();
-//        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-//        requestLayout();
-//
-//        mCamera.setParameters(parameters);
-//        mCamera.startPreview();
     }
 
     @Override
@@ -225,9 +208,6 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
         // We purposely disregard child measurements because act as a
         // wrapper to a SurfaceView that centers the camera preview instead
         // of stretching it.
-//        final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
-//        final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
-     //   RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) findViewById(R.id.preview_container).getLayoutParams();
         final int w = 800;
         final int h = 800;
 
@@ -257,21 +237,11 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
             final int width = r - l;
             final int height = b - t;
 
-            System.out.println("MAXX "+r+" "+l+" "+b+" "+t);
-
             int previewWidth = width;
             int previewHeight = height;
             if (mPreviewSize != null) {
-                float ratio = (float)width/(float)height;
-                int max_w = getResources().getDisplayMetrics().widthPixels;
-                System.out.println("MAX"+max_w+" "+ratio);
-//                size2.width  = (int)(max_w * 0.7);
-//                size2.height = (int)(max_w * 0.7 / ratio);
-
                previewWidth = mPreviewSize.width;
                previewHeight = mPreviewSize.height;
-                //previewWidth = (int)(max_w);
-                //previewHeight = (int)(max_w/ ratio);
             }
 
             // Center the child SurfaceView within the parent.
@@ -286,8 +256,6 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
             }
         }
     }
-
-
 
 
 
@@ -321,22 +289,19 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
     /**
      * add pointer to mouthBox
-     * @param c
-     * @param v
-     * @param id
+     * @param c camera
+     * @param v view for the camera preview
+     * @param id front camera number
      */
     public void setMouthBox(Camera c, ImageView v, int id){
         mCamera = c;
         Camera.Size s = mCamera.getParameters().getPictureSize();
         mouthBox = v;
         camId = id;
-        //sampleSize = s.width/256; //recovering a subsampled picture with width of 256px
         setCamera(c);
 
-        //parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
         requestLayout();
 
-        //mCamera.setParameters(parameters);
         mCamera.startPreview();
         mouthBox.setVisibility(INVISIBLE);
     }
@@ -345,11 +310,11 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
     /**
      * translating image from camera to display
-     * @param matrix
-     * @param displayOrientation
-     * @param viewWidth
-     * @param viewHeight
-     * @param mirror
+     * @param matrix for adding translations and later usage
+     * @param displayOrientation 0 for no rotation
+     * @param viewWidth preview width
+     * @param viewHeight preview height
+     * @param mirror horizontally rotate or not
      */
     public static void prepareMatrix(Matrix matrix, int displayOrientation,
                                      int viewWidth, int viewHeight, boolean mirror) {
@@ -383,26 +348,23 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
             List<Camera.Size> sizes = params.getSupportedPictureSizes();
             Camera.Size size = sizes.get(Integer.valueOf((sizes.size()-1)/2)); //choose a medium resolution
             params.setPictureSize(size.width, size.height);
+
+            //uncomment if view is rotated
             //camera.setDisplayOrientation(90);
 
             List<Camera.Size> sizes2 = params.getSupportedPreviewSizes();
             Camera.Size size2;
-//            if(sizes2.size()>1)
-//                size2 = sizes2.get(sizes2.size()-2);
-//            else
+            if(sizes2.size()>1)
+                size2 = sizes2.get(sizes2.size()-2); //take second biggest supported preview size (performance adjustment)
+            else
                 size2 = sizes2.get(0);
 
 
-            //params.setPreviewSize(size2.width, size2.height);
-//            double ratio = size2.width/size2.height;
-//            int max_w = getResources().getDisplayMetrics().widthPixels;
-//            System.out.println("MAX"+max_w);
-//            size2.width  = (int)(max_w * 0.7);
-//            size2.height = (int)(max_w * 0.7 / ratio);
 
             params.setPreviewSize(size2.width, size2.height);
 
-            //camera.setPreviewDisplay(mHolder);
+
+            //Performance adjustment settings
 
             //set color efects to none
             params.setColorEffect(Camera.Parameters.EFFECT_NONE);

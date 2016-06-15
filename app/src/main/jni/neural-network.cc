@@ -6,6 +6,7 @@ extern "C" JNIEXPORT jfloatArray JNICALL
 Java_com_emilia_mouthdetection_NeuralNetwork_classify(JNIEnv *env, jobject instance, jshortArray bitmap) {
     float result[size];
 
+    //TODO connect NN in here
     result[0] = 9;
 
     jfloatArray jArray = env->NewFloatArray(size);
