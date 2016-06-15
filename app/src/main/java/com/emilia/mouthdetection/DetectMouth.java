@@ -216,7 +216,6 @@ public class DetectMouth extends ViewGroup implements SurfaceHolder.Callback, Ca
 
         float ratio = (float)mCamera.getParameters().getPreviewSize().width/(float)mCamera.getParameters().getPreviewSize().height;
         int max_w = getResources().getDisplayMetrics().widthPixels;
-        System.out.println("MAX"+max_w+" "+ratio);
 
         final int width = (int)(max_w * 0.9);
         final int height = (int)(max_w * 0.9 / ratio);
